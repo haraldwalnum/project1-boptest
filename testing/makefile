@@ -55,7 +55,7 @@ compile_testcase_model:
 	make copy_to_om ARGS=parsing
 	make copy_to_om ARGS=data
 	make copy_to_om ARGS=testcases/${TESTCASE}
-	make exec_om ARGS="python set_library_versions.py ${TESTCASE} && cd ${TESTCASE}/models && python compile_fmu.py"
+	make exec_om ARGS="python3 set_library_versions.py ${TESTCASE} && cd ${TESTCASE}/models && python3 compile_fmu.py"
 	make copy_testcase_from_om ARGS=${TESTCASE}/models/wrapped.fmu
 	make copy_testcase_from_om ARGS=${TESTCASE}/models/wrapped.mo
 	make stop_om
