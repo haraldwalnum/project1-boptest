@@ -28,7 +28,7 @@ run_om:
 
 copy_to_om:
 	docker cp ../${ARGS} ${IMG_NAME}:/usr/local/testing
-	docker exec -it ${IMG_NAME} /bin/bash -c "sudo chown -R developer: /usr/local/testing && exit"
+	docker exec -it ${IMG_NAME} /bin/bash -c "chown -R developer: /usr/local/testing && exit"
 
 copy_testcase_to_om:
 	make copy_to_om ARGS=testcases/${TESTCASE}
