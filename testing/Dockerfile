@@ -7,7 +7,8 @@ RUN apt-get update && \
     apt-get install -y git && \
     apt-get install -y sudo && \
     apt-get install -y python2.7 && \
-    apt-get install -y python-pip
+    curl https://bootstrap.pypa.io/get-pip.py --output get-pip.py && \
+    python2 get-pip.py
 
 USER developer
 
