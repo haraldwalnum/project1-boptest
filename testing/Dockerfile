@@ -6,8 +6,8 @@ USER root
 RUN apt-get update && \
     apt-get install -y git && \
     apt-get install -y sudo && \
-#    apt-get install -y python && \
-    apt-get install -y python3-pip
+    apt-get install -y python2.7 && \
+    apt-get install -y python-pip
 
 USER developer
 
@@ -29,7 +29,7 @@ RUN mkdir $HOME/MODELICAPATH && mkdir git && \
 #    ln -s $ROOT_DIR/JModelica/ThirdParty/MSL/Complex.mo $HOME/MODELICAPATH/Complex.mo
 ENV MODELICAPATH $HOME/MODELICAPATH
 
-RUN python3 -m pip install --user flask-restful==0.3.9 pandas requests==2.18.4 pyzmq
-RUN python3 -m pip install -U https://github.com/OpenModelica/OMPython/archive/master.zip
+RUN python -m pip install --user flask-restful==0.3.9 pandas==0.24.2 requests==2.18.4 pyzmq
+RUN python -m pip install -U https://github.com/OpenModelica/OMPython/archive/master.zip
 ENV PATH $PATH:$HOME/$USER/.local/bin
 ENV PYTHONPATH $PYTHONPATH:/usr/local/testing
