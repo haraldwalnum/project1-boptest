@@ -32,3 +32,4 @@ ENV MODELICAPATH $HOME/MODELICAPATH
 RUN python3 -m pip install --user flask-restful==0.3.9 pandas requests==2.18.4 pyzmq
 RUN python3 -m pip install -U https://github.com/OpenModelica/OMPython/archive/master.zip
 ENV PATH $PATH:$HOME/$USER/.local/bin
+ENV PYTHONPATH $PYTHONPATH:/usr/local/testing
