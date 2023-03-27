@@ -50,7 +50,6 @@ final parameter Modelica.SIunits.MassFlowRate m_flow_nominal_air=31
           Buildings.Types.Azimuth.E}),
     use_C_flow=true,
     energyDynamics=Modelica.Fluid.Types.Dynamics.DynamicFreeInitial,
-    massDynamics=Modelica.Fluid.Types.Dynamics.SteadyState,
     nPorts=5,
     C_start={0.00064},
     linearizeRadiation=true,
@@ -115,7 +114,8 @@ Modelica.Thermal.HeatTransfer.Sources.PrescribedTemperature tWallGround
   annotation (Placement(transformation(extent={{40,-28},{20,-8}})));
 Modelica.Thermal.HeatTransfer.Sensors.TemperatureSensor Ti
   annotation (Placement(transformation(extent={{34,46},{54,66}})));
-SubModels.DistrictHeating dh(m_flow_nominal=m_flow_nominal_water_coil +
+SubModels.DistrictHeating2 dh(
+                             m_flow_nominal=m_flow_nominal_water_coil +
         m_flow_nominal_water_rad, m_flow_nominal_dh=m_flow_nominal_water_coil
          + m_flow_nominal_water_rad)
     annotation (Placement(transformation(extent={{-142,-212},{-122,-192}})));
@@ -123,7 +123,6 @@ Buildings.Fluid.HeatExchangers.Radiators.RadiatorEN442_2 rad(
   redeclare package Medium = Water,
     allowFlowReversal=false,
     energyDynamics=Modelica.Fluid.Types.Dynamics.DynamicFreeInitial,
-    massDynamics=Modelica.Fluid.Types.Dynamics.SteadyState,
     Q_flow_nominal=30*AFlo,
     dp_nominal=0,
     T_start=293.15,
@@ -137,6 +136,7 @@ Buildings.Fluid.Actuators.Valves.TwoWayLinear   valRad(
     m_flow_nominal=m_flow_nominal_water_rad,
     dpValve_nominal=5000,
     use_inputFilter=true,
+    y_start=0,
     dpFixed_nominal=20000)
   annotation (Placement(transformation(extent={{-2,-130},{-22,-110}})));
 Buildings.Fluid.Sensors.TemperatureTwoPort tRadIn(redeclare package Medium =
@@ -201,11 +201,12 @@ Buildings.Fluid.Actuators.Valves.TwoWayLinear   valCoil(
   CvData=Buildings.Fluid.Types.CvTypes.OpPoint,
     m_flow_nominal=m_flow_nominal_water_coil,
     dpValve_nominal=5000,
+    y_start=0,
     dpFixed_nominal=15000)
                      annotation (Placement(transformation(
       extent={{-10,-10},{10,10}},
       rotation=270,
-      origin={-152,14})));
+      origin={-152,18})));
 Modelica.Blocks.Math.Gain metHeat(k=120/AFlo)
   "Metabolic heat generation per person (sensible and latent)"
   annotation (Placement(transformation(extent={{-104,136},{-88,152}})));
@@ -225,8 +226,8 @@ final parameter Buildings.HeatTransfer.Data.Solids.Generic insulationFloor(
     annotation (Placement(transformation(extent={{-222,-134},{-240,-116}})));
   Modelica.Blocks.Continuous.Integrator Qh_tot(k=2.7778E-7) "Output in kWh"
     annotation (Placement(transformation(extent={{-222,-160},{-240,-142}})));
-  Buildings.Fluid.Sensors.TemperatureTwoPort senTemOut(redeclare package Medium
-      = Air, m_flow_nominal=1)
+  Buildings.Fluid.Sensors.TemperatureTwoPort senTemOut(redeclare package Medium =
+        Air, m_flow_nominal=1)
     annotation (Placement(transformation(extent={{-48,8},{-28,28}})));
   Modelica.Blocks.Math.Gain gaiCO2(k=8.18E-6) "CO2 emission per person"
     annotation (Placement(transformation(extent={{-106,104},{-90,120}})));
@@ -256,7 +257,7 @@ final parameter Buildings.HeatTransfer.Data.Solids.Generic insulationFloor(
     allowFlowReversal=false,
     m_flow_nominal=m_flow_nominal_water_coil/1000,
     dp_nominal=20000)
-    annotation (Placement(transformation(extent={{-134,-14},{-142,4}})));
+    annotation (Placement(transformation(extent={{-136,-10},{-144,8}})));
   Buildings.Fluid.FixedResistances.Pipe pipSupCoil(
     redeclare package Medium = Buildings.Media.Water,
     energyDynamics=Modelica.Fluid.Types.Dynamics.DynamicFreeInitial,
@@ -367,6 +368,32 @@ Modelica.Thermal.HeatTransfer.Sources.FixedTemperature tPipHeaLoss(T(
         rotation=180,
         origin={-234,-18})));
 
+Buildings.Fluid.FixedResistances.Junction jun1(
+    redeclare package Medium = Water,
+    portFlowDirection_1=Modelica.Fluid.Types.PortFlowDirection.Bidirectional,
+    portFlowDirection_2=Modelica.Fluid.Types.PortFlowDirection.Bidirectional,
+    portFlowDirection_3=Modelica.Fluid.Types.PortFlowDirection.Bidirectional,
+    m_flow_nominal={m_flow_nominal_water_coil,-m_flow_nominal_water_coil,-
+        m_flow_nominal_water_coil/1000},
+    dp_nominal={1000,0,0},
+    energyDynamics=Modelica.Fluid.Types.Dynamics.DynamicFreeInitial)
+                      annotation (Placement(transformation(
+      extent={{8,-8},{-8,8}},
+      rotation=-90,
+      origin={-126,0})));
+Buildings.Fluid.FixedResistances.Junction jun4(
+    redeclare package Medium = Water,
+    dp_nominal={1000,0,1000},
+    portFlowDirection_1=Modelica.Fluid.Types.PortFlowDirection.Bidirectional,
+    portFlowDirection_2=Modelica.Fluid.Types.PortFlowDirection.Bidirectional,
+    portFlowDirection_3=Modelica.Fluid.Types.PortFlowDirection.Bidirectional,
+    m_flow_nominal={m_flow_nominal_water_coil,-m_flow_nominal_water_coil,
+        m_flow_nominal_water_coil/1000},
+    energyDynamics=Modelica.Fluid.Types.Dynamics.DynamicFreeInitial)
+  annotation (Placement(transformation(
+      extent={{-8,8},{8,-8}},
+      rotation=-90,
+      origin={-162,-2})));
 equation
 connect(weaBus, ou44Bdg.weaBus) annotation (Line(
     points={{38,90},{38,73.9},{19.9,73.9}},
@@ -433,10 +460,12 @@ connect(matrixGain.u[1], metHeat.y)
                                               color={0,0,127}));
   connect(infiltration.port_a, ou44Bdg.ports[1]) annotation (Line(points={{-60,30},
           {-16,30},{-16,44.4},{-13,44.4}}, color={0,127,255}));
-  connect(ahu.port_b1, ou44Bdg.ports[2]) annotation (Line(points={{-120,40},{-66,
-          40},{-66,45.2},{-13,45.2}}, color={0,127,255}));
-  connect(ahu.port_a1, ou44Bdg.ports[3]) annotation (Line(points={{-120,48},{-66,
-          48},{-66,46},{-13,46}}, color={0,127,255}));
+  connect(ahu.port_b1, ou44Bdg.ports[2]) annotation (Line(points={{-120,40},{
+          -66,40},{-66,45.2},{-13,45.2}},
+                                      color={0,127,255}));
+  connect(ahu.port_a1, ou44Bdg.ports[3]) annotation (Line(points={{-120,48},{
+          -66,48},{-66,46},{-13,46}},
+                                  color={0,127,255}));
   connect(senCO2.port, ou44Bdg.ports[4]) annotation (Line(points={{-64,58},{-64,
           46.8},{-13,46.8}}, color={0,127,255}));
   connect(energyMeterRad.q, Qh_rad.u) annotation (Line(points={{-96,-112.6},{
@@ -454,20 +483,12 @@ connect(matrixGain.u[1], metHeat.y)
   connect(rad.port_b, tRadOut.port_a) annotation (Line(points={{28,-80},{38,-80},
           {38,-120},{30,-120}},  color={0,127,255}));
   connect(ahu.port_b2, valCoil.port_a) annotation (Line(points={{-132,34},{-132,
-          32},{-142,32},{-142,24},{-152,24}}, color={0,127,255}));
-  connect(valCoil.port_b, senTemCoiRet.port_a)
-    annotation (Line(points={{-152,4},{-152,-8}},  color={0,127,255}));
+          32},{-142,32},{-142,28},{-152,28}}, color={0,127,255}));
   connect(valRad.port_a, tRadOut.port_b)
     annotation (Line(points={{-2,-120},{10,-120}},   color={0,127,255}));
-  connect(res.port_a, ahu.port_a2) annotation (Line(points={{-134,-5},{-126,-5},
-          {-126,34}}, color={0,127,255}));
-  connect(res.port_b, valCoil.port_b) annotation (Line(points={{-142,-5},{-152,-5},
-          {-152,4}}, color={0,127,255}));
   connect(energyMeterAhu.port_b, pipSupCoil.port_a)
     annotation (Line(points={{-128,-56},{-128,-52},{-126,-52}},
                                                      color={0,127,255}));
-  connect(pipSupCoil.port_b, ahu.port_a2) annotation (Line(points={{-126,-32},{
-          -126,34}},                     color={0,127,255}));
   connect(senTemCoiRet.port_b, pipRetCoil.port_a)
     annotation (Line(points={{-152,-28},{-152,-32}}, color={0,127,255}));
   connect(pipRetCoil.port_b, energyMeterAhu.port_a2) annotation (Line(points={{
@@ -535,6 +556,18 @@ connect(matrixGain.u[1], metHeat.y)
     annotation (Line(points={{64.8,56},{54,56}}, color={0,0,127}));
   connect(senTemCoiRet.T,reaTCoiRet. u)
     annotation (Line(points={{-163,-18},{-226.8,-18}}, color={0,0,127}));
+  connect(jun1.port_3, res.port_a) annotation (Line(points={{-134,1.55431e-15},
+          {-136,1.55431e-15},{-136,-1}}, color={0,127,255}));
+  connect(jun1.port_1, pipSupCoil.port_b)
+    annotation (Line(points={{-126,-8},{-126,-32}}, color={0,127,255}));
+  connect(jun1.port_2, ahu.port_a2)
+    annotation (Line(points={{-126,8},{-126,34}}, color={0,127,255}));
+  connect(jun4.port_1, valCoil.port_b) annotation (Line(points={{-162,6},{-158,
+          6},{-158,8},{-152,8}}, color={0,127,255}));
+  connect(jun4.port_2, senTemCoiRet.port_a) annotation (Line(points={{-162,-10},
+          {-158,-10},{-158,-8},{-152,-8}}, color={0,127,255}));
+  connect(jun4.port_3, res.port_b) annotation (Line(points={{-154,-2},{-152,-2},
+          {-152,-1},{-144,-1}}, color={0,127,255}));
 annotation (Icon(coordinateSystem(preserveAspectRatio=false, extent={{-240,-240},
             {240,220}}),     graphics={Bitmap(
         extent={{-160,-162},{178,180}}, fileName="modelica://Adrenalin1_training/Resources/Images/ou44.jpg")}),

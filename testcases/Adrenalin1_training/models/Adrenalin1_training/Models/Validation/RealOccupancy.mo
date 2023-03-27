@@ -10,8 +10,8 @@ model RealOccupancy
       startTime=3*3600 + 3600*24));
 
   annotation (experiment(
-      StopTime=3600,
-      Interval=1,
+      StopTime=31536000,
+      Interval=3600,
       Tolerance=1e-06,
       __Dymola_Algorithm="Cvode"),                         Diagram(
         coordinateSystem(extent={{-260,-240},{240,220}}),          graphics={
